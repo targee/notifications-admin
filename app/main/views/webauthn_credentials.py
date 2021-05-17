@@ -1,15 +1,14 @@
-from fido2.ctap2 import AuthenticatorData
 from fido2 import cbor
 from fido2.client import ClientData
-
-from flask import current_app, request, session, abort
+from fido2.ctap2 import AuthenticatorData
+from flask import abort, current_app, request, session
 from flask_login import current_user
 
 from app.main import main
 from app.models.user import User
 from app.models.webauthn_credential import WebAuthnCredential
 from app.notify_client.user_api_client import user_api_client
-from app.utils import user_is_platform_admin, redirect_to_sign_in
+from app.utils import redirect_to_sign_in, user_is_platform_admin
 
 
 @main.route('/webauthn/register')
