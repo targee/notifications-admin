@@ -234,9 +234,12 @@ def test_complete_authentication_logs_user_in(
     response = client.post(url_for('main.webauthn_complete_authentication'), data=webauthn_authentication_post_data)
     assert response.status_code == 302
 
+    assert response.location == url_for('main.two_factor_webauthn_complete', _external=True)
+
     with client.session_transaction() as session:
-        assert session['user_id'] == platform_admin['id']
-        assert 'user_details' not in session
+        # session hasn't been touched tho
+        assert 'user_id' not in session
+        assert session['user_details']['id'] == platform_admin['id']
 
 
 def test_complete_authentication_403s_if_key_isnt_in_users_credentials(

@@ -1,7 +1,7 @@
 from fido2 import cbor
 from fido2.client import ClientData
 from fido2.ctap2 import AuthenticatorData
-from flask import abort, current_app, request, session
+from flask import abort, current_app, flash, redirect, request, session, url_for
 from flask_login import current_user
 
 from app.main import main
@@ -101,7 +101,8 @@ def webauthn_complete_authentication():
         )
     except ValueError as exc:
         current_app.logger.info(f'User {user_id} could not sign in using their webauthn token - {exc}')
-        abort(403)
+        flash('Security key not recognised')
+        # TODO: increment failed login count
+        return '', 403
 
-    from app.main.views.two_factor import log_in_user
-    return log_in_user(user_id)
+    return redirect(url_for('.two_factor_webauthn_complete'))

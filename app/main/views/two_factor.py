@@ -90,6 +90,30 @@ def two_factor_webauthn():
     return render_template('views/two-factor-webauthn.html', redirect_url=redirect_url)
 
 
+@main.route('/two-factor-webauthn-complete', methods=['GET'])
+@redirect_to_sign_in
+def two_factor_webauthn_complete():
+    # check email validated
+    # update current_session_id
+    user_id = session['user_details']['id']
+    user = User.from_id(user_id)
+
+    redirect_url = request.args.get('next')
+
+    if not is_less_than_days_ago(user.email_access_validated_at, 90):
+        user_api_client.send_verify_code(user.id, 'email', None, redirect_url)
+        return redirect(url_for('.revalidate_email_sent', next=redirect_url))
+
+    # normally API handles this when verifying an sms or email code but since the webauthn logic happens in the
+    # admin we need a separate call that just finalises the login in the database
+    logged_in, msg = user.verify_webauthn_login()
+    if logged_in:
+        return log_in_user(user_id)
+    else:
+        # user account is locked as too many failed logins
+        return redirect(url_for('.two-factor-webauthn', next=redirect_url))
+
+
 @main.route('/re-validate-email', methods=['GET'])
 def revalidate_email_sent():
     title = 'Email resent' if request.args.get('email_resent') else 'Check your email'
