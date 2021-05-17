@@ -1,8 +1,12 @@
+import base64
+
 import pytest
 from fido2 import cbor
 from flask import url_for
 
+from app.models.webauthn_credential import WebAuthnCredential
 from app import webauthn_server
+from tests.conftest import create_platform_admin_user
 
 
 @pytest.mark.parametrize('endpoint', [
@@ -134,20 +138,60 @@ def test_complete_register_clears_session(
         assert 'webauthn_registration_state' not in session
 
 
-def test_begin_authentication_returns_encoded_options(client):
-    pass
+def test_begin_authentication_forbidden_for_non_platform_admins(client, mock_get_user):
+    with client.session_transaction() as session:
+        session['user_details'] = {'id': '1'}
+
+    response = client.get(url_for('main.webauthn_begin_authentication'))
+    assert response.status_code == 403
 
 
-def test_begin_authentication_includes_existing_credentials(client):
-    pass
+def test_begin_authentication_forbidden_for_users_without_webauthn(client, mocker, platform_admin_user):
+    mocker.patch('app.user_api_client.get_user', return_value=platform_admin_user)
+
+    with client.session_transaction() as session:
+        session['user_details'] = {'id': '1'}
+
+    response = client.get(url_for('main.webauthn_begin_authentication'))
+    assert response.status_code == 403
 
 
-def test_begin_authentication_stores_state_in_session(client):
-    pass
+def test_begin_authentication_returns_encoded_options(client, mocker, webauthn_credential):
+    platform_admin = create_platform_admin_user(auth_type='webauthn_auth')
+    mocker.patch('app.user_api_client.get_user', return_value=platform_admin)
+
+    with client.session_transaction() as session:
+        session['user_details'] = {'id': platform_admin['id']}
+
+    get_creds_mock = mocker.patch(
+        'app.user_api_client.get_webauthn_credentials_for_user',
+        return_value=[webauthn_credential]
+    )
+    response = client.get(url_for('main.webauthn_begin_authentication'))
+
+    decoded_data = cbor.decode(response.data)
+    allowed_credentials = decoded_data['publicKey']['allowCredentials']
+
+    assert len(allowed_credentials) == 1
+    assert decoded_data['publicKey']['timeout'] == 30000
+    get_creds_mock.assert_called_once_with(platform_admin['id'])
 
 
-def test_complete_authentication_logs_user_in(client):
-    pass
+def test_begin_authentication_stores_state_in_session(client, mocker, webauthn_credential):
+    platform_admin = create_platform_admin_user(auth_type='webauthn_auth')
+    mocker.patch('app.user_api_client.get_user', return_value=platform_admin)
+
+    with client.session_transaction() as session:
+        session['user_details'] = {'id': platform_admin['id']}
+
+    mocker.patch(
+        'app.user_api_client.get_webauthn_credentials_for_user',
+        return_value=[webauthn_credential]
+    )
+    client.get(url_for('main.webauthn_begin_authentication'))
+
+    with client.session_transaction() as session:
+        assert 'challenge' in session['webauthn_authentication_state']
 
 
 def test_complete_authentication_403s_if_key_isnt_in_users_credentials(client):
