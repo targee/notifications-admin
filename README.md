@@ -23,7 +23,7 @@ brew install node
 
 ```shell
 npm install -g n
-n lts
+sudo n lts
 ```
 
 ### `environment.sh`
