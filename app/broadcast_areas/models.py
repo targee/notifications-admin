@@ -34,7 +34,9 @@ class GetItemByIdMixin:
         raise KeyError(id)
 
 
-class BaseBroadcastArea(ABC):
+class BaseBroadcastArea(ABC, SortByStringAttributeMixin):
+
+    __sort_attribute__ = 'name'
 
     @property
     @abstractmethod
@@ -75,9 +77,7 @@ class BaseBroadcastArea(ABC):
         return max(500, min(estimated_bleed, 5000))
 
 
-class BroadcastArea(BaseBroadcastArea, IdEqualityMixin, SortByStringAttributeMixin):
-
-    __sort_attribute__ = 'name'
+class BroadcastArea(BaseBroadcastArea, IdEqualityMixin):
 
     def __init__(self, row):
         self.id, self.name, self._count_of_phones, self.library_id = row
