@@ -10,7 +10,7 @@ from app.event_handlers import (
     create_add_user_to_service_event,
     create_set_user_permissions_event,
 )
-from app.models import JSONModel, ModelList
+from app.models import JSONModel, ModelList, SortByStringAttributeMixin
 from app.models.organisation import Organisation, Organisations
 from app.models.webauthn_credential import WebAuthnCredentials
 from app.notify_client import InviteTokenError
@@ -32,7 +32,7 @@ def _get_org_id_from_view_args():
     return str(request.view_args.get('org_id', '')) or None
 
 
-class User(JSONModel, UserMixin):
+class User(JSONModel, UserMixin, SortByStringAttributeMixin):
 
     MAX_FAILED_LOGIN_COUNT = 10
 
@@ -51,6 +51,8 @@ class User(JSONModel, UserMixin):
         'permissions',
         'state',
     }
+
+    __sort_attribute__ = 'email_address'
 
     def __init__(self, _dict):
         super().__init__(_dict)
@@ -441,7 +443,7 @@ class User(JSONModel, UserMixin):
         return user_api_client.complete_webauthn_login_attempt(self.id, is_successful)
 
 
-class InvitedUser(JSONModel):
+class InvitedUser(JSONModel, SortByStringAttributeMixin):
 
     ALLOWED_PROPERTIES = {
         'id',
@@ -453,6 +455,8 @@ class InvitedUser(JSONModel):
         'auth_type',
         'folder_permissions',
     }
+
+    __sort_attribute__ = 'email_address'
 
     def __init__(self, _dict):
         super().__init__(_dict)
@@ -576,7 +580,7 @@ class InvitedUser(JSONModel):
         return [{'id': x} for x in self.folder_permissions]
 
 
-class InvitedOrgUser(JSONModel):
+class InvitedOrgUser(JSONModel, SortByStringAttributeMixin):
 
     ALLOWED_PROPERTIES = {
         'id',
@@ -585,6 +589,8 @@ class InvitedOrgUser(JSONModel):
         'status',
         'created_at',
     }
+
+    __sort_attribute__ = 'email_address'
 
     def __init__(self, _dict):
         super().__init__(_dict)

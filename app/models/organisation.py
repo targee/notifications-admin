@@ -5,14 +5,14 @@ from app.models import (
     JSONModel,
     ModelList,
     SerialisedModelCollection,
-    SortByNameMixin,
+    SortByStringAttributeMixin,
 )
 from app.notify_client.email_branding_client import email_branding_client
 from app.notify_client.letter_branding_client import letter_branding_client
 from app.notify_client.organisations_api_client import organisations_client
 
 
-class Organisation(JSONModel, SortByNameMixin):
+class Organisation(JSONModel, SortByStringAttributeMixin):
 
     TYPE_CENTRAL = 'central'
     TYPE_LOCAL = 'local'
@@ -57,6 +57,8 @@ class Organisation(JSONModel, SortByNameMixin):
         'purchase_order_number',
         'notes',
     }
+
+    __sort_attribute__ = 'name'
 
     @classmethod
     def from_id(cls, org_id):
