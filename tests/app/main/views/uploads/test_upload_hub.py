@@ -89,12 +89,14 @@ def test_get_upload_hub_with_no_uploads(
 def test_get_upload_hub_page(
     mocker,
     client_request,
+    active_user_with_permissions,
     service_one,
     mock_get_uploads,
     mock_get_no_contact_lists,
 ):
     mocker.patch('app.job_api_client.get_jobs', return_value={'data': []})
     service_one['permissions'] += ['letter', 'upload_letters']
+    client_request.login(active_user_with_permissions)
     page = client_request.get('main.uploads', service_id=SERVICE_ONE_ID)
     assert page.find('h1').text == 'Uploads'
     assert page.find('a', text=re.compile('Upload a letter')).attrs['href'] == url_for(
@@ -146,9 +148,11 @@ def test_get_upload_hub_page(
 def test_get_uploaded_letters(
     mocker,
     client_request,
+    active_user_with_permissions,
     service_one,
     mock_get_uploaded_letters,
 ):
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.uploaded_letters',
         service_id=SERVICE_ONE_ID,
@@ -235,9 +239,11 @@ def test_get_uploaded_letters(
 def test_get_empty_uploaded_letters_page(
     mocker,
     client_request,
+    active_user_with_permissions,
     service_one,
     mock_get_no_uploaded_letters,
 ):
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.uploaded_letters',
         service_id=SERVICE_ONE_ID,
@@ -254,9 +260,11 @@ def test_get_empty_uploaded_letters_page(
 def test_get_uploaded_letters_passes_through_page_argument(
     mocker,
     client_request,
+    active_user_with_permissions,
     service_one,
     mock_get_uploaded_letters,
 ):
+    client_request.login(active_user_with_permissions)
     client_request.get(
         'main.uploaded_letters',
         service_id=SERVICE_ONE_ID,
@@ -335,11 +343,13 @@ def test_uploads_page_shows_scheduled_jobs(
 def test_uploads_page_shows_contact_lists_first(
     mocker,
     client_request,
+    active_user_with_permissions,
     mock_get_no_uploads,
     mock_get_jobs,
     mock_get_contact_lists,
     mock_get_service_data_retention,
 ):
+    client_request.login(active_user_with_permissions)
     page = client_request.get('main.uploads', service_id=SERVICE_ONE_ID)
 
     assert [

@@ -556,10 +556,12 @@ def test_broadcast_dashboard_has_new_alert_button_if_user_has_permission_to_crea
 @freeze_time('2020-02-20 02:20')
 def test_broadcast_dashboard_json(
     client_request,
+    active_user_with_permissions,
     service_one,
     mock_get_broadcast_messages,
 ):
     service_one['permissions'] += ['broadcast']
+    client_request.login(active_user_with_permissions)
     response = client_request.get_response(
         '.broadcast_dashboard_updates',
         service_id=SERVICE_ONE_ID,
@@ -1719,7 +1721,9 @@ def test_view_broadcast_message_page(
     created_by_api,
     extra_fields,
     expected_paragraphs,
+    active_user_with_permissions,
 ):
+    client_request.login(active_user_with_permissions)
     mocker.patch(
         'app.broadcast_message_api_client.get_broadcast_message',
         return_value=broadcast_message_json(
@@ -2255,6 +2259,7 @@ def test_view_only_user_cant_approve_broadcast_created_by_someone_else(
     ])
     service_one['permissions'] += ['broadcast']
 
+    client_request.login(current_user)
     page = client_request.get(
         '.view_current_broadcast',
         service_id=SERVICE_ONE_ID,

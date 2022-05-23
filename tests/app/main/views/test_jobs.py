@@ -68,6 +68,7 @@ def test_old_jobs_hub_redirects(
 @freeze_time("2016-01-01 11:09:00.061258")
 def test_should_show_page_for_one_job(
     client_request,
+    active_user_with_permissions,
     mock_get_service_template,
     mock_get_job,
     mocker,
@@ -78,6 +79,7 @@ def test_should_show_page_for_one_job(
     expected_api_call,
     user,
 ):
+    client_request.login(active_user_with_permissions)
 
     page = client_request.get(
         'main.view_job',
@@ -141,6 +143,7 @@ def test_should_show_page_for_one_job_with_flexible_data_retention(
 ):
 
     mock_get_service_data_retention.side_effect = [[{"days_of_retention": 10, "notification_type": "sms"}]]
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.view_job',
         service_id=SERVICE_ONE_ID,
@@ -287,6 +290,7 @@ def test_should_show_old_job(
     processing_started,
     expected_message,
 ):
+    client_request.login(active_user_with_permissions)
     mocker.patch('app.job_api_client.get_job', return_value={
         "data": job_json(
             SERVICE_ONE_ID,
@@ -321,12 +325,14 @@ def test_should_show_old_job(
 @freeze_time("2016-01-01 11:09:00.061258")
 def test_should_show_letter_job(
     client_request,
+    active_user_with_permissions,
     mock_get_service_letter_template,
     mock_get_letter_job,
     mock_get_service_data_retention,
     fake_uuid,
     mocker,
 ):
+    client_request.login(active_user_with_permissions)
     notifications = create_notifications(template_type='letter', subject='template subject')
     get_notifications = mocker.patch(
         'app.notification_api_client.get_notifications_for_service',
@@ -388,7 +394,10 @@ def test_should_show_letter_job_with_banner_after_sending_before_1730(
     mock_get_letter_job,
     mock_get_service_data_retention,
     fake_uuid,
+    active_user_with_permissions,
 ):
+    client_request.login(active_user_with_permissions)
+
     mocker.patch(
         'app.notification_api_client.get_notifications_for_service',
         return_value=create_notifications(template_type='letter', postage='second')
@@ -412,11 +421,14 @@ def test_should_show_letter_job_with_banner_after_sending_before_1730(
 def test_should_show_letter_job_with_banner_when_there_are_multiple_CSV_rows(
     mocker,
     client_request,
+    active_user_with_permissions,
     mock_get_service_letter_template,
     mock_get_letter_job_in_progress,
     mock_get_service_data_retention,
     fake_uuid,
 ):
+    client_request.login(active_user_with_permissions)
+
     mocker.patch(
         'app.notification_api_client.get_notifications_for_service',
         return_value=create_notifications(template_type='letter', postage='second')
@@ -439,11 +451,14 @@ def test_should_show_letter_job_with_banner_when_there_are_multiple_CSV_rows(
 def test_should_show_letter_job_with_banner_after_sending_after_1730(
     mocker,
     client_request,
+    active_user_with_permissions,
     mock_get_service_letter_template,
     mock_get_letter_job,
     mock_get_service_data_retention,
     fake_uuid,
 ):
+    client_request.login(active_user_with_permissions)
+
     mocker.patch(
         'app.notification_api_client.get_notifications_for_service',
         return_value=create_notifications(template_type='letter', postage='second')
@@ -470,7 +485,10 @@ def test_should_show_scheduled_job(
     mock_get_service_data_retention,
     mock_get_notifications,
     fake_uuid,
+    active_user_with_permissions,
 ):
+    client_request.login(active_user_with_permissions)
+
     page = client_request.get(
         'main.view_job',
         service_id=SERVICE_ONE_ID,
@@ -578,6 +596,7 @@ def test_should_not_show_cancel_link_for_letter_job_if_too_late(
     job_created_at,
     expected_fragment,
 ):
+    client_request.login(active_user_with_permissions)
     job_id = uuid.uuid4()
     job = job_json(
         SERVICE_ONE_ID, active_user_with_permissions, job_id=job_id, created_at=job_created_at
@@ -611,6 +630,7 @@ def test_should_show_cancel_link_for_letter_job(
     active_user_with_permissions,
     job_status,
 ):
+    client_request.login(active_user_with_permissions)
     job_id = uuid.uuid4()
     job = job_json(
         SERVICE_ONE_ID,
@@ -649,6 +669,8 @@ def test_dont_cancel_letter_job_when_to_early_to_cancel(
     job_status,
     number_of_processed_notifications,
 ):
+    client_request.login(active_user_with_permissions)
+
     job_id = uuid.uuid4()
     job = job_json(
         SERVICE_ONE_ID,
@@ -693,6 +715,7 @@ def test_should_show_updates_for_one_job_as_json(
     mocker,
     fake_uuid,
 ):
+    client_request.login(active_user_with_permissions)
     response = client_request.get_response(
         'main.view_job_updates',
         service_id=service_one['id'],
@@ -722,6 +745,7 @@ def test_should_show_updates_for_scheduled_job_as_json(
     mocker,
     fake_uuid,
 ):
+    client_request.login(active_user_with_permissions)
     mocker.patch('app.job_api_client.get_job', return_value={'data': job_json(
         service_one['id'],
         created_by=user_json(),
@@ -764,12 +788,15 @@ def test_time_left(job_created_at, expected_message):
 @freeze_time("2016-01-01 11:09:00.061258")
 def test_should_show_letter_job_with_first_class_if_notifications_are_first_class(
     client_request,
+    active_user_with_permissions,
     mock_get_service_letter_template,
     mock_get_letter_job,
     mock_get_service_data_retention,
     fake_uuid,
     mocker,
 ):
+    client_request.login(active_user_with_permissions)
+
     notifications = create_notifications(template_type='letter', postage='first')
     mocker.patch('app.notification_api_client.get_notifications_for_service', return_value=notifications)
 
@@ -785,6 +812,7 @@ def test_should_show_letter_job_with_first_class_if_notifications_are_first_clas
 @freeze_time("2016-01-01 11:09:00.061258")
 def test_should_show_letter_job_with_first_class_if_no_notifications(
     client_request,
+    active_user_with_permissions,
     service_one,
     mock_get_letter_job,
     fake_uuid,
@@ -792,6 +820,8 @@ def test_should_show_letter_job_with_first_class_if_no_notifications(
     mock_get_service_data_retention,
     mocker
 ):
+    client_request.login(active_user_with_permissions)
+
     mocker.patch(
         'app.service_api_client.get_service_template',
         return_value={'data': create_template(template_type='letter', postage='first')}

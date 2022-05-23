@@ -542,6 +542,7 @@ def test_organisation_services_filters_by_financial_year(
         'app.organisations_client.get_services_and_usage',
         return_value={"services": []}
     )
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         '.organisation_dashboard',
         org_id=ORGANISATION_ID,

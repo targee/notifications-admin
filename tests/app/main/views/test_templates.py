@@ -597,6 +597,7 @@ def test_caseworker_sees_template_page_if_template_is_deleted(
     mocker.patch('app.user_api_client.get_user', return_value=active_caseworking_user)
 
     template_id = fake_uuid
+    client_request.login(active_caseworking_user)
     page = client_request.get(
         '.view_template',
         service_id=SERVICE_ONE_ID,
@@ -2076,6 +2077,7 @@ def test_should_redirect_when_saving_a_template_email(
 
 def test_should_show_delete_template_page_with_time_block(
     client_request,
+    active_user_with_permissions,
     mock_get_service_template,
     mock_get_template_folders,
     mocker,
@@ -2085,6 +2087,7 @@ def test_should_show_delete_template_page_with_time_block(
                  return_value='2012-01-01 12:00:00')
 
     with freeze_time('2012-01-01 12:10:00'):
+        client_request.login(active_user_with_permissions)
         page = client_request.get(
             '.delete_service_template',
             service_id=SERVICE_ONE_ID,
@@ -2103,6 +2106,7 @@ def test_should_show_delete_template_page_with_time_block(
 
 def test_should_show_delete_template_page_with_time_block_for_empty_notification(
     client_request,
+    active_user_with_permissions,
     mock_get_service_template,
     mock_get_template_folders,
     mocker,
@@ -2112,6 +2116,7 @@ def test_should_show_delete_template_page_with_time_block_for_empty_notification
                  return_value=None)
 
     with freeze_time('2012-01-01 11:00:00'):
+        client_request.login(active_user_with_permissions)
         page = client_request.get(
             '.delete_service_template',
             service_id=SERVICE_ONE_ID,
@@ -2198,6 +2203,7 @@ def test_should_redirect_when_deleting_a_template(
 @freeze_time('2016-01-01T15:00')
 def test_should_show_page_for_a_deleted_template(
     client_request,
+    active_user_with_permissions,
     mock_get_template_folders,
     mock_get_deleted_template,
     single_letter_contact_block,
@@ -2207,6 +2213,7 @@ def test_should_show_page_for_a_deleted_template(
     fake_uuid,
 ):
     template_id = fake_uuid
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         '.view_template',
         service_id=SERVICE_ONE_ID,

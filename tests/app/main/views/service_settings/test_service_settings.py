@@ -1606,6 +1606,7 @@ def test_should_redirect_after_request_to_go_live(
     displayed_volumes,
     formatted_displayed_volumes,
 ):
+    client_request.login(active_user_with_permissions)
     for channel, volume in volumes:
         mocker.patch(
             'app.models.service.Service.volume_{}'.format(channel),
@@ -2429,6 +2430,7 @@ def test_service_add_reply_to_email_address_without_verification_for_platform_ad
 def test_service_verify_reply_to_address(
     mocker,
     client_request,
+    active_user_with_permissions,
     fake_uuid,
     get_non_default_reply_to_email_address,
     status,
@@ -2438,6 +2440,7 @@ def test_service_verify_reply_to_address(
     replace,
     expected_header
 ):
+    client_request.login(active_user_with_permissions)
     notification = {
         "id": fake_uuid,
         "status": status,
@@ -2486,7 +2489,12 @@ def test_service_verify_reply_to_address(
 
 
 @freeze_time("2018-06-01 11:11:00.061258")
-def test_add_reply_to_email_address_fails_if_notification_not_delivered_in_45_sec(mocker, client_request, fake_uuid):
+def test_add_reply_to_email_address_fails_if_notification_not_delivered_in_45_sec(
+    mocker,
+    client_request,
+    active_user_with_permissions,
+    fake_uuid,
+):
     notification = {
         "id": fake_uuid,
         "status": "sending",
@@ -2501,6 +2509,7 @@ def test_add_reply_to_email_address_fails_if_notification_not_delivered_in_45_se
     )
     mocker.patch('app.notification_api_client.get_notification', return_value=notification)
     mock_add_reply_to_email_address = mocker.patch('app.service_api_client.add_reply_to_email_address')
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.service_verify_reply_to_address',
         service_id=SERVICE_ONE_ID,

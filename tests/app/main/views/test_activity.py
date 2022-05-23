@@ -757,8 +757,11 @@ def test_sending_status_hint_displays_correctly_on_notifications_page(
     status,
     expected_hint_status,
     single_line,
-    mocker
+    mocker,
+    active_user_with_permissions,
 ):
+    client_request.login(active_user_with_permissions)
+
     notifications = create_notifications(template_type=message_type, status=status)
     mocker.patch('app.notification_api_client.get_notifications_for_service', return_value=notifications)
 

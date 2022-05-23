@@ -38,6 +38,7 @@ from tests.conftest import (
 @freeze_time("2016-01-01 11:09:00.061258")
 def test_notification_status_page_shows_details(
     client_request,
+    active_user_with_permissions,
     mocker,
     mock_has_no_jobs,
     service_one,
@@ -47,6 +48,7 @@ def test_notification_status_page_shows_details(
     notification_status,
     expected_status,
 ):
+    client_request.login(active_user_with_permissions)
 
     mocker.patch('app.user_api_client.get_user', return_value=user)
 
@@ -99,6 +101,7 @@ def test_notification_status_page_formats_email_and_sms_status_correctly(
     notification = create_notification(notification_status=notification_status, template_type=notification_type)
     mocker.patch('app.notification_api_client.get_notification', return_value=notification)
 
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.view_notification',
         service_id=service_one['id'],
@@ -115,6 +118,7 @@ def test_notification_status_page_formats_email_and_sms_status_correctly(
 def test_notification_status_page_respects_redaction(
     client_request,
     mocker,
+    active_user_with_permissions,
     service_one,
     fake_uuid,
     template_redaction_setting,
@@ -126,6 +130,7 @@ def test_notification_status_page_respects_redaction(
         return_value=create_notification(redact_personalisation=template_redaction_setting)
     )
 
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.view_notification',
         service_id=service_one['id'],
@@ -205,6 +210,7 @@ def test_notification_status_shows_expected_back_link(
 def test_notification_page_doesnt_link_to_template_in_tour(
     mocker,
     client_request,
+    active_user_with_permissions,
     fake_uuid,
     mock_get_notification,
     time_of_viewing_page,
@@ -216,6 +222,7 @@ def test_notification_page_doesnt_link_to_template_in_tour(
         mocker.patch('app.notification_api_client.get_notification', return_value=notification)
 
     with freeze_time(time_of_viewing_page):
+        client_request.login(active_user_with_permissions)
         page = client_request.get(
             'main.view_notification',
             service_id=SERVICE_ONE_ID,
@@ -232,6 +239,7 @@ def test_notification_page_doesnt_link_to_template_in_tour(
 @freeze_time("2016-01-01 01:01")
 def test_notification_page_shows_page_for_letter_notification(
     client_request,
+    active_user_with_permissions,
     mocker,
     fake_uuid,
 ):
@@ -246,6 +254,7 @@ def test_notification_page_shows_page_for_letter_notification(
         return_value=count_of_pages
     )
 
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.view_notification',
         service_id=SERVICE_ONE_ID,
@@ -286,6 +295,7 @@ def test_notification_page_shows_page_for_letter_notification(
 @freeze_time("2020-01-01 00:00")
 def test_notification_page_shows_uploaded_letter(
     client_request,
+    active_user_with_permissions,
     mocker,
     fake_uuid,
 ):
@@ -314,6 +324,7 @@ def test_notification_page_shows_uploaded_letter(
     )
     mocker.patch('app.notification_api_client.get_notification', return_value=notification)
 
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.view_notification',
         service_id=SERVICE_ONE_ID,
@@ -345,6 +356,7 @@ def test_notification_page_shows_uploaded_letter(
 ))
 def test_notification_page_shows_page_for_letter_sent_with_test_key(
     client_request,
+    active_user_with_permissions,
     mocker,
     fake_uuid,
     is_precompiled_letter,
@@ -383,6 +395,7 @@ def test_notification_page_shows_page_for_letter_sent_with_test_key(
     )
     mocker.patch('app.notification_api_client.get_notification', return_value=notification)
 
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.view_notification',
         service_id=SERVICE_ONE_ID,
@@ -456,6 +469,7 @@ def test_notification_page_shows_validation_failed_precompiled_letter(
 @freeze_time("2016-01-01 01:01")
 def test_notification_page_shows_cancelled_or_failed_letter(
     client_request,
+    active_user_with_permissions,
     mocker,
     fake_uuid,
     notification_status,
@@ -468,6 +482,7 @@ def test_notification_page_shows_cancelled_or_failed_letter(
         return_value=1,
     )
 
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.view_notification',
         service_id=SERVICE_ONE_ID,
@@ -489,6 +504,7 @@ def test_notification_page_shows_cancelled_or_failed_letter(
 @freeze_time('2016-01-01 15:00')
 def test_notification_page_does_not_show_cancel_link_for_sms_or_email_notifications(
     client_request,
+    active_user_with_permissions,
     mocker,
     fake_uuid,
     notification_type,
@@ -496,6 +512,7 @@ def test_notification_page_does_not_show_cancel_link_for_sms_or_email_notificati
     notification = create_notification(template_type=notification_type, notification_status='created')
     mocker.patch('app.notification_api_client.get_notification', return_value=notification)
 
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.view_notification',
         service_id=SERVICE_ONE_ID,
@@ -508,6 +525,7 @@ def test_notification_page_does_not_show_cancel_link_for_sms_or_email_notificati
 @freeze_time('2016-01-01 15:00')
 def test_notification_page_shows_cancel_link_for_letter_which_can_be_cancelled(
     client_request,
+    active_user_with_permissions,
     mocker,
     fake_uuid,
 ):
@@ -519,6 +537,7 @@ def test_notification_page_shows_cancel_link_for_letter_which_can_be_cancelled(
         return_value=1
     )
 
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.view_notification',
         service_id=SERVICE_ONE_ID,
@@ -531,6 +550,7 @@ def test_notification_page_shows_cancel_link_for_letter_which_can_be_cancelled(
 @freeze_time('2016-01-01 15:00')
 def test_notification_page_does_not_show_cancel_link_for_letter_which_cannot_be_cancelled(
     client_request,
+    active_user_with_permissions,
     mocker,
     fake_uuid,
 ):
@@ -542,6 +562,7 @@ def test_notification_page_does_not_show_cancel_link_for_letter_which_cannot_be_
         return_value=1
     )
 
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.view_notification',
         service_id=SERVICE_ONE_ID,
@@ -574,6 +595,7 @@ def test_notification_page_does_not_show_cancel_link_for_letter_which_cannot_be_
 @freeze_time("2016-01-01 18:00")
 def test_notification_page_shows_page_for_other_postage_classes(
     client_request,
+    active_user_with_permissions,
     mocker,
     fake_uuid,
     postage,
@@ -589,6 +611,7 @@ def test_notification_page_shows_page_for_other_postage_classes(
     mocker.patch('app.notification_api_client.get_notification', return_value=notification)
     mocker.patch('app.main.views.notifications.get_page_count_for_letter', return_value=3)
 
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.view_notification',
         service_id=SERVICE_ONE_ID,
@@ -929,6 +952,7 @@ def test_should_show_image_of_precompiled_letter_notification(
 @freeze_time('2016-01-01 15:00')
 def test_show_cancel_letter_confirmation(
     client_request,
+    active_user_with_permissions,
     mocker,
     fake_uuid,
 ):
@@ -939,6 +963,7 @@ def test_show_cancel_letter_confirmation(
         return_value=1
     )
 
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.cancel_letter',
         service_id=SERVICE_ONE_ID,
@@ -953,6 +978,7 @@ def test_show_cancel_letter_confirmation(
 @freeze_time('2016-01-01 15:00')
 def test_cancelling_a_letter_calls_the_api(
     client_request,
+    active_user_with_permissions,
     mocker,
     fake_uuid,
 ):
@@ -966,6 +992,7 @@ def test_cancelling_a_letter_calls_the_api(
         'app.main.views.notifications.notification_api_client.update_notification_to_cancelled'
     )
 
+    client_request.login(active_user_with_permissions)
     client_request.post(
         'main.cancel_letter',
         service_id=SERVICE_ONE_ID,
@@ -985,6 +1012,7 @@ def test_cancelling_a_letter_calls_the_api(
 ])
 def test_cancel_letter_catches_errors_from_API(
     client_request,
+    active_user_with_permissions,
     mocker,
     fake_uuid,
     error_message
@@ -1005,6 +1033,7 @@ def test_cancel_letter_catches_errors_from_API(
         ))
     )
 
+    client_request.login(active_user_with_permissions)
     page = client_request.post(
         'main.cancel_letter',
         service_id=SERVICE_ONE_ID,

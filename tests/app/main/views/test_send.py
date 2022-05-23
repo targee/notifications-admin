@@ -4287,6 +4287,7 @@ def test_redirects_to_template_if_job_exists_already(
 def test_choose_from_contact_list(
     mocker,
     client_request,
+    active_user_with_permissions,
     mock_get_contact_lists,
     fake_uuid,
     template_type,
@@ -4300,6 +4301,7 @@ def test_choose_from_contact_list(
         'app.service_api_client.get_service_template',
         return_value={'data': template},
     )
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.choose_from_contact_list',
         service_id=SERVICE_ONE_ID,

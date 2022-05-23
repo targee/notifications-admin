@@ -88,11 +88,13 @@ from tests.conftest import SERVICE_ONE_ID, normalize_spaces
 @freeze_time("2012-01-01 01:01:01")
 def test_history(
     client_request,
+    active_user_with_permissions,
     mock_get_service_history,
     mock_get_users_by_service,
     extra_args,
     expected_headings_and_events,
 ):
+    client_request.login(active_user_with_permissions)
     page = client_request.get('main.history', service_id=SERVICE_ONE_ID, **extra_args)
 
     assert page.select_one('h1').text == 'Audit events'

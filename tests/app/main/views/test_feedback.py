@@ -72,10 +72,12 @@ def test_get_support_index_page_when_signed_out(
 ])
 def test_choose_support_type(
     client_request,
+    active_user_with_permissions,
     mock_get_non_empty_organisations_and_services_for_user,
     support_type,
     expected_h1
 ):
+    client_request.login(active_user_with_permissions)
     page = client_request.post(
         'main.support',
         _data={'support_type': support_type},
@@ -196,12 +198,14 @@ def test_passed_non_logged_in_user_details_through_flow(client_request, mocker, 
 ])
 def test_passes_user_details_through_flow(
     client_request,
+    active_user_with_permissions,
     mock_get_non_empty_organisations_and_services_for_user,
     mocker,
     ticket_type,
     zendesk_ticket_type,
     data
 ):
+    client_request.login(active_user_with_permissions)
     mock_create_ticket = mocker.spy(NotifySupportTicket, '__init__')
     mock_send_ticket_to_zendesk = mocker.patch(
         'app.main.views.feedback.zendesk_client.send_ticket_to_zendesk',

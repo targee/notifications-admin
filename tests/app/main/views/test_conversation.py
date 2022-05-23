@@ -76,6 +76,7 @@ def test_get_user_phone_number_raises_if_both_api_requests_fail(mocker):
 @freeze_time("2012-01-01 00:00:00")
 def test_view_conversation(
     client_request,
+    active_user_with_permissions,
     mocker,
     mock_get_inbound_sms_by_id_with_no_messages,
     mock_get_notification,
@@ -84,6 +85,7 @@ def test_view_conversation(
     expected_outbound_content,
     mock_get_inbound_sms
 ):
+    client_request.login(active_user_with_permissions)
     notifications = create_notifications(
         content='Hello ((name))',
         personalisation={'name': 'Jo'},
@@ -206,7 +208,7 @@ def test_view_conversation_updates(
 def test_view_conversation_with_empty_inbound(
     client_request,
     mocker,
-    api_user_active,
+    active_user_with_permissions,
     mock_get_inbound_sms_by_id_with_no_messages,
     mock_get_notification,
     mock_get_notifications_with_no_notifications,
@@ -226,6 +228,7 @@ def test_view_conversation_with_empty_inbound(
         }
     )
 
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.conversation',
         service_id=SERVICE_ONE_ID,

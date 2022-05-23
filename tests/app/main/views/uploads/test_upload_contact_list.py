@@ -478,6 +478,7 @@ def test_cant_save_bad_contact_list(
 def test_view_contact_list(
     mocker,
     client_request,
+    active_user_with_permissions,
     mock_get_contact_list,
     mock_get_no_jobs,
     mock_get_service_data_retention,
@@ -498,6 +499,7 @@ def test_view_contact_list(
             f'test-{i}@example.com' for i in range(51)
         ]
     ))
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.contact_list',
         service_id=SERVICE_ONE_ID,
@@ -559,6 +561,7 @@ def test_view_contact_list(
 def test_view_jobs_for_contact_list(
     mocker,
     client_request,
+    active_user_with_permissions,
     mock_get_jobs,
     mock_get_service_data_retention,
     fake_uuid,
@@ -580,6 +583,7 @@ def test_view_jobs_for_contact_list(
     mocker.patch('app.models.contact_list.s3download', return_value='\n'.join(
         ['email address'] + ['test@example.com'] * 51
     ))
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.contact_list',
         service_id=SERVICE_ONE_ID,

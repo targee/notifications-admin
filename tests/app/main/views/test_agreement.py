@@ -465,7 +465,10 @@ def test_confirm_agreement_page_persists(
     mock_get_service_organisation,
     mock_update_organisation,
     fake_uuid,
+    active_user_with_permissions,
 ):
+    client_request.login(active_user_with_permissions)
+
     mocker.patch(
         'app.models.organisation.organisations_client.get_organisation',
         return_value=organisation_json(agreement_signed_version='1.2')

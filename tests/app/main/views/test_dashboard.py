@@ -416,8 +416,10 @@ def test_view_inbox_updates(
 @freeze_time("2016-07-01 13:00")
 def test_download_inbox(
     client_request,
+    active_user_with_permissions,
     mock_get_inbound_sms,
 ):
+    client_request.login(active_user_with_permissions)
     response = client_request.get_response(
         'main.inbox_download',
         service_id=SERVICE_ONE_ID,
@@ -458,7 +460,9 @@ def test_download_inbox_strips_formulae(
     fake_uuid,
     message_content,
     expected_cell,
+    active_user_with_permissions,
 ):
+    client_request.login(active_user_with_permissions)
 
     mocker.patch(
         'app.service_api_client.get_inbound_sms',
@@ -518,6 +522,7 @@ def test_returned_letters_not_visible_if_service_has_no_returned_letters(
 def test_returned_letters_shows_count_of_recently_returned_letters(
     client_request,
     mocker,
+    active_user_with_permissions,
     service_one,
     mock_get_service_templates_when_no_templates_exist,
     mock_get_jobs,
@@ -530,6 +535,8 @@ def test_returned_letters_shows_count_of_recently_returned_letters(
     reporting_date,
     expected_message,
 ):
+    client_request.login(active_user_with_permissions)
+
     mocker.patch(
         'app.service_api_client.get_returned_letter_statistics',
         return_value={
@@ -590,7 +597,9 @@ def test_returned_letters_only_counts_recently_returned_letters(
     reporting_date,
     count,
     expected_message,
+    active_user_with_permissions,
 ):
+    client_request.login(active_user_with_permissions)
     mocker.patch(
         'app.service_api_client.get_returned_letter_statistics',
         return_value={
@@ -705,8 +714,10 @@ def test_should_not_show_recent_templates_on_dashboard_if_only_one_template_used
 ])
 def test_should_show_redirect_from_template_history(
     client_request,
+    active_user_with_permissions,
     extra_args,
 ):
+    client_request.login(active_user_with_permissions)
     client_request.get(
         'main.template_history',
         service_id=SERVICE_ONE_ID,
@@ -722,9 +733,11 @@ def test_should_show_redirect_from_template_history(
 ])
 def test_should_show_monthly_breakdown_of_template_usage(
     client_request,
+    active_user_with_permissions,
     mock_get_monthly_template_usage,
     extra_args,
 ):
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.template_usage',
         service_id=SERVICE_ONE_ID,
@@ -788,10 +801,12 @@ def test_monthly_shows_letters_in_breakdown(
 @freeze_time("2015-01-01 15:15:15.000000")
 def test_stats_pages_show_last_3_years(
     client_request,
+    active_user_with_permissions,
     endpoint,
     mock_get_monthly_notification_stats,
     mock_get_monthly_template_usage,
 ):
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         endpoint,
         service_id=SERVICE_ONE_ID,
@@ -820,6 +835,7 @@ def test_monthly_has_equal_length_tables(
 @freeze_time("2016-01-01 11:09:00.061258")
 def test_should_show_upcoming_jobs_on_dashboard(
     client_request,
+    active_user_with_permissions,
     mock_get_service_templates,
     mock_get_template_statistics,
     mock_get_service_statistics,
@@ -830,6 +846,7 @@ def test_should_show_upcoming_jobs_on_dashboard(
     mock_get_inbound_sms_summary,
     mock_get_returned_letter_statistics_with_no_returned_letters,
 ):
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.service_dashboard',
         service_id=SERVICE_ONE_ID,
@@ -988,10 +1005,12 @@ def test_should_not_show_jobs_on_dashboard_for_users_with_uploads_page(
 @freeze_time("2012-03-31 12:12:12")
 def test_usage_page(
     client_request,
+    active_user_with_permissions,
     mock_get_annual_usage_for_service,
     mock_get_monthly_usage_for_service,
     mock_get_free_sms_fragment_limit
 ):
+    client_request.login(active_user_with_permissions)
     page = client_request.get(
         'main.usage',
         service_id=SERVICE_ONE_ID,
@@ -1033,9 +1052,11 @@ def test_usage_page(
 def test_usage_page_no_sms_spend(
     mocker,
     client_request,
+    active_user_with_permissions,
     mock_get_monthly_usage_for_service,
     mock_get_free_sms_fragment_limit
 ):
+    client_request.login(active_user_with_permissions)
     mocker.patch('app.billing_api_client.get_annual_usage_for_service', return_value=[
         {
             "notification_type": "sms",
@@ -1063,11 +1084,13 @@ def test_usage_page_no_sms_spend(
 @freeze_time("2012-03-31 12:12:12")
 def test_usage_page_monthly_breakdown(
     client_request,
+    active_user_with_permissions,
     service_one,
     mock_get_annual_usage_for_service,
     mock_get_monthly_usage_for_service,
     mock_get_free_sms_fragment_limit
 ):
+    client_request.login(active_user_with_permissions)
     page = client_request.get('main.usage', service_id=SERVICE_ONE_ID)
     monthly_breakdown = normalize_spaces(page.find('table').text)
 
@@ -1097,6 +1120,7 @@ def test_usage_page_monthly_breakdown(
 )
 def test_usage_page_monthly_breakdown_shows_months_so_far(
     client_request,
+    active_user_with_permissions,
     service_one,
     mock_get_annual_usage_for_service,
     mock_get_monthly_usage_for_service,
@@ -1105,6 +1129,7 @@ def test_usage_page_monthly_breakdown_shows_months_so_far(
     expected_number_of_months
 ):
     with now:
+        client_request.login(active_user_with_permissions)
         page = client_request.get('main.usage', service_id=SERVICE_ONE_ID)
         rows = page.find('table').find_all('tr', class_='table-row')
         assert len(rows) == expected_number_of_months
@@ -1113,11 +1138,13 @@ def test_usage_page_monthly_breakdown_shows_months_so_far(
 @freeze_time("2012-03-31 12:12:12")
 def test_usage_page_letter_breakdown_ordered_by_postage_and_rate(
     client_request,
+    active_user_with_permissions,
     service_one,
     mock_get_monthly_usage_for_service,
     mock_get_annual_usage_for_service,
     mock_get_free_sms_fragment_limit
 ):
+    client_request.login(active_user_with_permissions)
     page = client_request.get('main.usage', service_id=SERVICE_ONE_ID)
     row_for_feb = page.find('table').find_all('tr', class_='table-row')[10]
     postage_details = row_for_feb.find_all('li', class_='tabular-numbers')
@@ -1181,10 +1208,12 @@ def test_usage_page_for_invalid_year(
 @freeze_time("2012-03-31 12:12:12")
 def test_future_usage_page(
     client_request,
+    active_user_with_permissions,
     mock_get_annual_usage_for_service_in_future,
     mock_get_monthly_usage_for_service_in_future,
     mock_get_free_sms_fragment_limit
 ):
+    client_request.login(active_user_with_permissions)
     client_request.get(
         'main.usage',
         service_id=SERVICE_ONE_ID,

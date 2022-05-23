@@ -309,6 +309,7 @@ def test_add_service_fails_if_service_name_fails_validation(
 @freeze_time("2021-01-01")
 def test_should_return_form_errors_with_duplicate_service_name_regardless_of_case(
     client_request,
+    active_user_with_permissions,
     mock_get_organisation_by_domain,
     mocker,
 ):
@@ -323,6 +324,7 @@ def test_should_return_form_errors_with_duplicate_service_name_regardless_of_cas
         side_effect=_create
     )
 
+    client_request.login(active_user_with_permissions)
     page = client_request.post(
         'main.add_service',
         _data={
