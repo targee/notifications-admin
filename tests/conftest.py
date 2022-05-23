@@ -2836,6 +2836,8 @@ def client_request(_logged_in_client, mocker, service_one):  # noqa (C901 too co
                 follow_redirects=_follow_redirects,
             )
 
+            _warn_about_sign_out_error_due_to_freeze_time(resp)
+
             if _expected_redirect and _expected_status == 200:
                 _expected_status = 302
 
@@ -2912,6 +2914,9 @@ def client_request(_logged_in_client, mocker, service_one):  # noqa (C901 too co
                 follow_redirects=_follow_redirects,
                 **post_kwargs
             )
+
+            _warn_about_sign_out_error_due_to_freeze_time(resp)
+
             assert resp.status_code == _expected_status
             if _expected_redirect:
                 assert_url_expected(resp.location, _expected_redirect)
@@ -2936,6 +2941,9 @@ def client_request(_logged_in_client, mocker, service_one):  # noqa (C901 too co
             _expected_status=200,
         ):
             resp = _logged_in_client.get(url)
+
+            _warn_about_sign_out_error_due_to_freeze_time(resp)
+
             assert resp.status_code == _expected_status
             return resp
 
@@ -2980,6 +2988,21 @@ def normalize_spaces(input):
     if isinstance(input, str):
         return ' '.join(input.split())
     return normalize_spaces(' '.join(item.text for item in input))
+
+
+def _warn_about_sign_out_error_due_to_freeze_time(response):
+    """
+    The `client_request` logs in the `active_user_with_permissions`. In tests which `freeze_time`, the user will
+    be logged in at the current time, not when the time is frozen. This results in tests failing because the
+    request is redirected to the sign-in page. Since it's not obvious that you need to sign in the client for a
+    second time if time is frozen (particuarly since it was unecessary with itsdangerous 1.x) this prints a hint
+    if tests fail.
+    """
+    if response.status_code == 302 and response.location.startswith(url_for('main.sign_in', _external=True)):
+        print(  # noqa: T201
+            "⚠️ If you're using `@freeze_time` in the test, log in the relevant user at the start of the test, "
+            "for example `client_request.login(active_user_with_permissions)` ⚠️"
+        )
 
 
 @pytest.fixture(scope='function')
