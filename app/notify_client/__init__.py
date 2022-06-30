@@ -53,7 +53,7 @@ class NotifyAdminAPIClient(BaseAPIClient):
         """
         # this file is imported in app/__init__.py before current_service is initialised, so need to import later
         # to prevent cyclical imports
-        from app import current_service # this is imported here to avoid circular imports when the app is bootstrapped
+        from app import current_service
         if current_service and not current_service.active:
             _request_ctx_stack.top.service = None
 
