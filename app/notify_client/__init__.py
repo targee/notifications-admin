@@ -1,4 +1,5 @@
 from flask import abort, has_request_context, request
+from flask.globals import _request_ctx_stack
 from flask_login import current_user
 from notifications_python_client import __version__
 from notifications_python_client.base import BaseAPIClient
@@ -44,6 +45,18 @@ class NotifyAdminAPIClient(BaseAPIClient):
         headers['X-B3-SpanId'] = request.span_id
         return headers
 
+    def unset_inactive_current_service(self):
+        """
+        This method unsets the current service to None if the current service is inactive.
+        This is to fix the current issue where a new service is prevented from being created if the current service
+        is inactive
+        """
+        # this file is imported in app/__init__.py before current_service is initialised, so need to import later
+        # to prevent cyclical imports
+        from app import current_service # this is imported here to avoid circular imports when the app is bootstrapped
+        if current_service and not current_service.active:
+            _request_ctx_stack.top.service = None
+
     def check_inactive_service(self):
         # this file is imported in app/__init__.py before current_service is initialised, so need to import later
         # to prevent cyclical imports
@@ -55,6 +68,7 @@ class NotifyAdminAPIClient(BaseAPIClient):
             abort(403)
 
     def post(self, *args, **kwargs):
+        self.unset_inactive_current_service()
         self.check_inactive_service()
         return super().post(*args, **kwargs)
 
