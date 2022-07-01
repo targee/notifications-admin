@@ -42,6 +42,22 @@ def test_active_service_can_be_modified(notify_admin, method, user, service):
     assert ret == request.return_value
 
 
+def test_normal_user_can_create_new_service_after_current_service_is_rendered_inactive(
+        notify_admin,
+        api_user_active
+):
+    api_client = NotifyAdminAPIClient()
+    method = 'post'
+    with notify_admin.test_request_context() as request_context, notify_admin.test_client() as client:
+        client.login(api_user_active)
+        request_context.service = Service(service_json(active=False))
+
+        with patch.object(api_client, 'request') as request:
+            getattr(api_client, method)('url', 'data')
+
+    assert request.called
+
+
 @pytest.mark.parametrize('method', [
     'put',
     'post',
