@@ -1,63 +1,109 @@
 {% extends "withnav_template.html" %}
 {% from "components/banner.html" import banner_wrapper %}
-{% from "components/radios.html" import radio_select %}
 {% from "components/table.html" import list_table, field, text_field, index_field, hidden_field_heading %}
 {% from "components/page-header.html" import page_header %}
 {% from "components/button/macro.njk" import govukButton %}
+{% from "components/skip-link/macro.njk" import govukSkipLink %}
 {% from "components/back-link/macro.njk" import govukBackLink %}
 
+{% set file_contents_header_id = 'file-preview' %}
+
 {% block service_page_title %}
-  {{ original_file_name }}
+  {{ "Preview of {}".format(template.name) }}
 {% endblock %}
 
+
 {% block backLink %}
-  {{ govukBackLink({ "href": url_for('main.upload_contact_list', service_id=current_service.id) }) }}
+  {{ govukBackLink({ "href": back_link }) }}
 {% endblock %}
 
 {% block maincolumn_content %}
 
-  {{ page_header(original_file_name) }}
+  {{ page_header('Preview of {}'.format(template.name)) }}
 
-  <p class="govuk-body">
-    {{ recipients|length|recipient_count(recipients.template_type) }} found
-  </p>
+  {% if letter_too_long %}
+    {% call banner_wrapper(type='dangerous') %}
+        {% include "partials/check/letter-too-long.html" %}
+    {% endcall %}
+  {% endif %}
 
+  {{ govukSkipLink({
+    "text": "Skip to file contents",
+    "href": "#" + file_contents_header_id
+  }) }}
+
+  {{ template|string }}
   <div class="bottom-gutter-3-2">
-    <form method="post" enctype="multipart/form-data" action="{{ url_for('main.save_contact_list', service_id=current_service.id, upload_id=upload_id) }}">
+    <form method="post" enctype="multipart/form-data" action="{{url_for('main.start_job', service_id=current_service.id, upload_id=upload_id)}}" class='page-footer'>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      {{ govukButton({ "text": "Save contact list" }) }}
+      <input type="hidden" name="contact_list_id" value="{{ request.args.get('contact_list_id', '') }}" />
+      {% if choose_time_form and template.template_type != 'letter' %}
+        {{ choose_time_form.scheduled_for(param_extensions={
+          'formGroup': {'classes': 'bottom-gutter-2-3'},
+          'attributes': {
+            'data-module': 'radio-select',
+            'data-categories': choose_time_form.scheduled_for.categories|join(','),
+            'data-show-now-as-default': 'true'
+          }
+        }) }}
+      {% endif %}
+      {% if (template.template_type != 'letter' or not request.args.from_test) and not letter_too_long %}
+        {% set button_text %}
+          Send {{ count_of_recipients|message_count(template.template_type) }}
+        {% endset %}
+        {{ govukButton({ "text": button_text }) }}
+      {% else %}
+        {{ govukButton({
+          "element": "a",
+          "text": "Download as a PDF",
+          "href": url_for('no_cookie.check_messages_preview', service_id=current_service.id, template_id=template.id, upload_id=upload_id, filetype='pdf'),
+        }) }}
+      {% endif %}
     </form>
   </div>
 
-  <h2 class="govuk-heading-m">
-    File preview
-  </h2>
-  {% call(item, row_number) list_table(
-    recipients.displayed_rows,
-    caption=original_file_name,
-    caption_visible=False,
-    field_headings=[
-      '<span class="govuk-visually-hidden">Row in file</span> <span aria-hidden="true">1</span>'|safe
-    ] + recipients.column_headers
-  ) %}
-    {{ index_field(item.index + 2) }}
-    {% for column in recipients.column_headers %}
-      {% if item[column].ignore %}
-        {{ text_field(item[column].data or '', status='default') }}
-      {% else %}
-        {{ text_field(item[column].data or '') }}
-      {% endif %}
-    {% endfor %}
-    {% if item[None].data %}
-      {% for column in item[None].data %}
-        {{ text_field(column, status='default') }}
-      {% endfor %}
-    {% endif %}
-  {% endcall %}
+  {% if not request.args.from_test %}
 
-  {% if recipients.displayed_rows|list|length < recipients|length %}
+    <h2 class="heading-medium" id="{{ file_contents_header_id }}">{{ original_file_name }}</h2>
+
+    <div class="fullscreen-content" data-module="fullscreen-table">
+      {% call(item, row_number) list_table(
+        recipients.displayed_rows,
+        caption=original_file_name,
+        caption_visible=False,
+        field_headings=[
+          '<span class="govuk-visually-hidden">Row in file</span><span aria-hidden="true">1</span>'|safe
+        ] + recipients.column_headers
+      ) %}
+        {% call index_field() %}
+          <span>
+            {% if (item.index + 2) == preview_row %}
+              {{ item.index + 2 }}
+            {% else %}
+              <a class="govuk-link govuk-link--no-visited-state" href="{{ url_for('.check_messages', service_id=current_service.id, template_id=template.id, upload_id=upload_id, row_index=(item.index + 2), original_file_name=original_file_name) }}">{{ item.index + 2 }}</a>
+            {% endif %}
+          </span>
+        {% endcall %}
+        {% for column in recipients.column_headers %}
+          {% if item[column].ignore %}
+            {{ text_field(item[column].data or '', status='default') }}
+          {% else %}
+            {{ text_field(item[column].data or '') }}
+          {% endif %}
+        {% endfor %}
+        {% if item[None].data %}
+          {% for column in item[None].data %}
+            {{ text_field(column, status='default') }}
+          {% endfor %}
+        {% endif %}
+      {% endcall %}
+    </div>
+
+  {% endif %}
+
+  {% if count_of_displayed_recipients < count_of_recipients %}
     <p class="table-show-more-link">
-      Only showing the first {{ recipients.displayed_rows|list|length }} rows
+      Only showing the first {{ count_of_displayed_recipients }} rows
     </p>
   {% endif %}
 
