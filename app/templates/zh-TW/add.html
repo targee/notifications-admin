@@ -1,38 +1,30 @@
 {% extends "withnav_template.html" %}
-{% from "components/textbox.html" import textbox %}
 {% from "components/page-header.html" import page_header %}
 {% from "components/page-footer.html" import page_footer %}
 {% from "components/form.html" import form_wrapper %}
 {% from "components/back-link/macro.njk" import govukBackLink %}
 
 {% block service_page_title %}
-  Add a new address
+  Add text message sender
 {% endblock %}
 
 {% block backLink %}
-  {{ govukBackLink({ "href": back_link }) }}
+  {{ govukBackLink({ "href": url_for('main.service_sms_senders', service_id=current_service.id) }) }}
 {% endblock %}
 
 {% block maincolumn_content %}
 
-  {{ page_header('Add a new address') }}
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
-      {% call form_wrapper() %}
-        {{ textbox(
-            form.letter_contact_block,
-            label='This will appear as the sender address on your letters.'|safe,
-            hint='10 lines maximum',
-            width='1-2',
-            rows=10,
-            highlight_placeholders=True
-          ) }}
-        {% if not first_contact_block %}
-          {{ form.is_default }}
-        {% endif %}
-        {{ page_footer('Add') }}
-      {% endcall %}
-    </div>
-  </div>
+  {{ page_header('Add text message sender') }}
+
+  {% call form_wrapper() %}
+    {{ form.sms_sender(param_extensions={
+      "classes": "govuk-!-width-one-quarter",
+      "hint": {"text": "Up to 11 characters, letters, numbers and spaces only"}
+    }) }}
+    {% if not first_sms_sender %}
+      {{ form.is_default }}
+    {% endif %}
+    {{ page_footer('Save') }}
+  {% endcall %}
 
 {% endblock %}
