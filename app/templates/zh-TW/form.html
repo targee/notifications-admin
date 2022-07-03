@@ -1,0 +1,15 @@
+{% macro form_wrapper(
+  method="post",
+  action=None,
+  autocomplete=False,
+  class=None,
+  id=None,
+  module=None,
+  data_kwargs={}
+) %}
+  <form
+    method="{{ method }}"
+    {% if action %}action="{{ action }}">
+    {{ caller() }}
+  </form>
+{% endmacro %}
