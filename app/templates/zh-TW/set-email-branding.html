@@ -1,18 +1,18 @@
-{% extends "org_template.html" %}
-{% from "components/page-footer.html" import page_footer %}
+{% extends "withnav_template.html" %}
 {% from "components/page-header.html" import page_header %}
+{% from "components/page-footer.html" import page_footer, sticky_page_footer %}
 {% from "components/live-search.html" import live_search %}
 {% from "components/form.html" import form_wrapper %}
 {% from "components/back-link/macro.njk" import govukBackLink %}
 
-{% set page_title = "Default email branding" %}
-
-{% block per_page_title %}
-  {{ page_title }}
-{% endblock %}
+{% set page_title = "Set email branding" %}
 
 {% block backLink %}
-  {{ govukBackLink({ "href": url_for('.organisation_settings', org_id=current_org.id) }) }}
+  {{ govukBackLink({ "href": url_for('.service_settings', service_id=current_service.id) }) }}
+{% endblock %}
+
+{% block service_page_title %}
+  {{ page_title }}
 {% endblock %}
 
 {% block maincolumn_content %}
@@ -35,9 +35,7 @@
         {{ form.branding_style }}
       </div>
     </div>
-    <div class="js-stick-at-bottom-when-scrolling">
-      {{ page_footer('Preview') }}
-    </div>
+    {{ sticky_page_footer('Preview') }}
   {% endcall %}
 
 {% endblock %}
