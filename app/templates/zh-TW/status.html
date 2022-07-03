@@ -1,18 +1,31 @@
 <div class="ajax-block-container">
-  {% set field_status = notification.status|format_notification_status_as_field_status(notification.notification_type) %}
-  {% set status_url = notification.status|format_notification_status_as_url(notification.notification_type) %}
-  <p class="notification-status {{ field_status }}">
-    {% if status_url %}
-      <a class="govuk-link govuk-link--destructive" href="{{ status_url }}">
-    {% endif %}
-    {{ notification.status|format_notification_status(
-      notification.template.template_type
-    ) }}
-    {% if status_url %}
-      </a>
-    {% endif %}
-    {% if sent_with_test_key %}
-      (test)
+  <p class='bottom-gutter'>
+    {% if job.scheduled_for %}
+      {% if job.processing_started %}
+        Sent by {{ job.created_by.name }} on {{ job.processing_started|format_datetime_short }}
+        {% if job.template.template_type == "letter" %}
+          <p class="govuk-body" id="printing-info">
+            {{ letter_print_day }}
+          </p>
+        {% endif %}
+      {% else %}
+        Uploaded by {{ job.created_by.name }} on {{ job.created_at|format_datetime_short }}
+      {% endif %}
+   {% else %}
+      Sent by {{ job.created_by.name }} on {{ job.created_at|format_datetime_short }}
+      {% if job.template.template_type == "letter" %}
+        <p class="govuk-body" id="printing-info">
+          {{ letter_print_day }}
+        </p>
+      {% endif %}
     {% endif %}
   </p>
+  {% if job.status == 'sending limits exceeded'%}
+    <p class="govuk-error-message">
+        Notify cannot send these messages because you have reached your daily limit. You can only send {{ current_service.message_limit|format_thousands }} messages per day.
+    </p>
+    <p class="govuk-error-message govuk-!-margin-bottom-6">
+        Upload this spreadsheet again tomorrow or <a class="govuk-link" href="https://www.notifications.service.gov.uk/support">contact the GOV.UK Notify team</a> to raise the limit.
+    </p>
+    {% endif %}
 </div>
