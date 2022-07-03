@@ -5,26 +5,20 @@
 {% from "components/back-link/macro.njk" import govukBackLink %}
 
 {% block service_page_title %}
-  Add text message sender
+  Set data retention
 {% endblock %}
 
 {% block backLink %}
-  {{ govukBackLink({ "href": url_for('main.service_sms_senders', service_id=current_service.id) }) }}
+  {{ govukBackLink({ "href": url_for('.add_data_retention', service_id=current_service.id) }) }}
 {% endblock %}
-
 {% block maincolumn_content %}
 
-  {{ page_header('Add text message sender') }}
+    {{ page_header('Set data retention') }}
 
-  {% call form_wrapper() %}
-    {{ form.sms_sender(param_extensions={
-      "classes": "govuk-!-width-one-quarter",
-      "hint": {"text": "Up to 11 characters, letters, numbers and spaces only"}
-    }) }}
-    {% if not first_sms_sender %}
-      {{ form.is_default }}
-    {% endif %}
-    {{ page_footer('Save') }}
-  {% endcall %}
+    {% call form_wrapper() %}
+      {{ form.notification_type }}
+      {{ form.days_of_retention }}
+      {{ page_footer('Add') }}
+    {% endcall %}
 
 {% endblock %}
