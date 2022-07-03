@@ -1,82 +1,44 @@
-{% extends "withnav_template.html" %}
-{% from "components/ajax-block.html" import ajax_block %}
-{% from "components/page-header.html" import page_header %}
 {% from "components/page-footer.html" import page_footer %}
-{% from "components/form.html" import form_wrapper %}
-{% from "components/button/macro.njk" import govukButton %}
+{% from "components/previous-next-navigation.html" import previous_next_navigation %}
+{% from "components/table.html" import list_table, field, text_field, link_field, right_aligned_field_heading, hidden_field_heading, row_heading, notification_status_field %}
 
-{% set title_status = (
-  'Failed '
-  if status == 'failed' and message_type == 'letter'
-  else ''
-) %}
-{% set page_title = (
-  (title_status + 99|message_count_label(message_type, suffix='')) | capitalize
-  if current_user.has_permissions('view_activity')
-  else 'Sent messages'
-) %}
+<div class="ajax-block-container" id='pill-selected-item'>
 
-{% block service_page_title %}
-  {{ page_title }}
-{% endblock %}
+  {% if notifications %}
+    <div class='dashboard-table'>
+  {% endif %}
+    {% call(item, row_number) list_table(
+      notifications,
+      caption="Recent activity",
+      caption_visible=False,
+      empty_message='No messages found &thinsp;(messages are kept for {} days)'.format(limit_days)|safe,
+      field_headings=['Recipient', 'Status'],
+      field_headings_visible=False
+    ) %}
+      {% call row_heading() %}
+        {% if item.status in ('pending-virus-check', 'virus-scan-failed') %}
+          <span class="file-list-filename loading-indicator">Checking</span>
+        {% else %}
+          <a class="govuk-link govuk-link--no-visited-state file-list-filename" href="{{ single_notification_url(notification_id=item.id) }}">{{ item.to.splitlines()|join(', ') if item.to else '' }}</a>
+        {% endif %}
+        <p class="file-list-hint">
+          {{ item.preview_of_content }}
+        </p>
+      {% endcall %}
 
-{% block maincolumn_content %}
+      {{ notification_status_field(item) }}
 
-  {{ page_header(page_title) }}
-  {% if not message_type == "letter" %}
-
-    {{ ajax_block(
-      partials,
-      url_for('.get_notifications_as_json', service_id=current_service.id, message_type=message_type, status=status),
-      'counts'
-    ) }}
-
+    {% endcall %}
+  {% if notifications %}
+    </div>
   {% endif %}
 
-  {% call form_wrapper(
-    action=url_for('.view_notifications', service_id=current_service.id, message_type=message_type),
-    class="govuk-grid-row"
-  ) %}
-    <div class="govuk-grid-column-three-quarters {% if message_type == 'sms' %}extra-tracking{% endif %}">
-      {{ search_form.to(param_extensions={
-            "label": {
-              "text": things_you_can_search_by|formatted_list(
-                conjunction='or',
-                before_each='',
-                after_each='',
-                prefix='Search by',
-                prefix_plural='Search by'
-              )
-            }
-      }) }}
-    </div>
-    <div class="govuk-grid-column-one-quarter">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      {{ govukButton({
-        "text": "Search",
-        "classes": "search-form__button"
-      }) }}
-    </div>
-  {% endcall %}
-
-  {% call form_wrapper(id="search-form") %}
-    <input type="hidden" name="to" {% if search_form.to.data %}value="{{ search_form.to.data }}{%  endif %}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  {% endcall %}
-
-  {% if current_user.has_permissions('view_activity') %}
-    <p class="bottom-gutter">
-      <a href="{{ download_link }}" download="download" class="govuk-link govuk-link--no-visited-state govuk-!-font-weight-bold">Download this report (<abbr title="Comma separated values">CSV</abbr>)</a>
-      &emsp;
-      Data available for {{ partials.service_data_retention_days }} days
+  {% if show_pagination %}
+    {{ previous_next_navigation(prev_page, next_page) }}
+  {% elif next_page %}
+    <p class="table-show-more-link">
+      Only showing the first 50 messages
     </p>
   {% endif %}
 
-  {{ ajax_block(
-    partials,
-    url_for('.get_notifications_as_json', service_id=current_service.id, message_type=message_type, status=status, page=page),
-    'notifications',
-    form='search-form'
-  ) }}
-
-{% endblock %}
+</div>
