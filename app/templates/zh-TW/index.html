@@ -1,35 +1,65 @@
-{% extends "content_template.html" %}
-{% from "components/table.html" import mapping_table, row, text_field, edit_field, field with context %}
-{% from "components/sub-navigation.html" import sub_navigation %}
+{% extends "views/platform-admin/_base_template.html" %}
+{% from "components/big-number.html" import big_number_simple %}
+{% from "components/status-box.html" import status_box %}
+{% from "components/form.html" import form_wrapper %}
+{% from "components/details/macro.njk" import govukDetails %}
+{% from "components/button/macro.njk" import govukButton %}
 
 {% block per_page_title %}
-  Guidance
+  Summary
 {% endblock %}
 
-{% block content_column_content %}
+{% block platform_admin_content %}
 
-  <h1 class="heading-large">Guidance</h1>
+  <h1 class="heading-medium">
+    Summary
+  </h1>
 
-  <p class="govuk-body">This guidance is for teams using GOV.UK Notify to send emails, text messages and letters.</p>
+  {% set details_content %}
+    {% call form_wrapper(method="get") %}
+      {{ form.start_date(param_extensions={"hint": {"text":"Enter start date in format YYYY-MM-DD"}}) }}
+      {{ form.end_date(param_extensions={"hint": {"text":"Enter end date in format YYYY-MM-DD"}}) }}
+      </br>
+      {{ govukButton({ "text": "Filter" }) }}
+    {% endcall %}
+  {% endset %}
 
-  <p class="govuk-body">It explains how to:</p>
+  {{ govukDetails({
+    "summaryText": "Apply filters",
+    "html": details_content,
+    "open": form.errors | convert_to_boolean
+  }) }}
 
-  <ul class="list list-bullet">
-    <li><a class="govuk-link govuk-link--no-visited-state" href="{{ url_for('.edit_and_format_messages') }}">edit and format messages</a></li>
-    <li><a class="govuk-link govuk-link--no-visited-state" href="{{ url_for('.branding_and_customisation') }}">add branding and customisation</a></li>
-    <li><a class="govuk-link govuk-link--no-visited-state" href="{{ url_for('.send_files_by_email') }}">send files by email</a></li>
-    <li><a class="govuk-link govuk-link--no-visited-state" href="{{ url_for('.upload_a_letter') }}">upload a letter</a></li>
-  </ul>
+  <div class="govuk-grid-row bottom-gutter">
+    {% for noti_type in global_stats %}
+      <div class="govuk-grid-column-one-third">
+        {{ big_number_simple(
+            noti_type.black_box.number,
+            noti_type.black_box.number|message_count_label(noti_type.black_box.notification_type)
+          ) }}
 
-  <h2 class="heading-medium">More information</h2>
+        {% for item in noti_type.other_data %}
+          {{ status_box(
+              number=item.number,
+              label=item.label,
+              failing=item.failing,
+              percentage=item.percentage,
+              url=item.url)
+          }}
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
 
-  <p class="govuk-body">The GOV.UK Service Manual has advice on:</p>
-
-  <ul class="list list-bullet">
-    <li><a class="govuk-link govuk-link--no-visited-state" href="https://www.gov.uk/service-manual/design/sending-emails-and-text-messages">planning and writing text messages and emails</a></li>
-    <li><a class="govuk-link govuk-link--no-visited-state" href="https://www.gov.uk/service-manual/design/writing-effective-letters">writing effective letters</a></li>
-    <li><a class="govuk-link govuk-link--no-visited-state" href="https://www.gov.uk/service-manual/technology/how-to-email-your-users">sending emails from your service domain</a></li>
-    <li><a class="govuk-link govuk-link--no-visited-state" href="https://www.gov.uk/service-manual/technology/sending-text-messages-securely">sending text messages securely</a></li>
-  </ul>
+  <div class="govuk-grid-row bottom-gutter">
+    {% for noti_type in global_stats %}
+      <div class="govuk-grid-column-one-third">
+        <div class="bordered-text-box">
+          <span class="big-number-number">{{ "{:,}".format(noti_type.test_data.number) }}</span>
+          {{ noti_type.test_data.label }}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
 
 {% endblock %}
