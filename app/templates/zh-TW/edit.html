@@ -6,46 +6,35 @@
 {% from "components/back-link/macro.njk" import govukBackLink %}
 
 {% block service_page_title %}
-  Change text message sender
+ Change reply-to email address
 {% endblock %}
 
 {% block backLink %}
-  {% if not request.args.get('from_template') %}
-    {{ govukBackLink({ "href": url_for('.service_sms_senders', service_id=current_service.id) }) }}
-  {% endif %}
+  {{ govukBackLink({ "href": url_for('main.service_email_reply_to', service_id=current_service.id) }) }}
 {% endblock %}
-
 {% block maincolumn_content %}
 
-  {{ page_header('Change text message sender') }}
+  {{ page_header('Change reply-to email address') }}
   {% call form_wrapper() %}
-    {% if inbound_number %}
-      <p class="govuk-body">
-        <span class="bottom-gutter-1-3"> {{ sms_sender.sms_sender }} </span>
-        <span class="hint"> This phone number receives replies and cannot be changed </span>
-      </p>
-    {% else %}
-      {{ form.sms_sender(param_extensions={
-        "classes": "govuk-!-width-one-quarter",
-        "hint": {"text": "Up to 11 characters, letters, numbers and spaces only"}
-      }) }}
-    {% endif %}
-    {% if form.is_default.data %}
+    {{ form.email_address(
+        param_extensions={
+          "hint": {"text": "This should be a shared inbox managed by your team, not your own email address"},
+          "classes": "govuk-!-width-full"
+        },
+        error_message_with_html=True
+    ) }}
+    {% if not show_choice_of_default_checkbox %}
       <p class="form-group">
-        This is the default text message sender.
+        This is the default reply-to address for {{ current_service.name }} emails
       </p>
       {{ page_footer('Save') }}
     {% else %}
       {{ form.is_default }}
-      {% if inbound_number %}
-        {{ page_footer('Save') }}
-      {% else %}
-        {{ page_footer(
-          'Save',
-          delete_link=url_for('.service_confirm_delete_sms_sender', service_id=current_service.id, sms_sender_id=sms_sender_id),
-          delete_link_text='Delete'
-        ) }}
-      {% endif %}
+      {{ page_footer(
+        'Save',
+        delete_link=url_for('.service_confirm_delete_email_reply_to', service_id=current_service.id, reply_to_email_id=reply_to_email_address_id),
+        delete_link_text='Delete'
+      ) }}
     {% endif %}
   {% endcall %}
 
