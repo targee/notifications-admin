@@ -1,0 +1,3 @@
+files:
+  - source: /app/templates
+    translation: /app/templates/%locale%/%original_file_name%
